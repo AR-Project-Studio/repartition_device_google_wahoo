@@ -1,0 +1,110 @@
+#!/sbin/sh
+# Copyright (C) 2024, AR Project Studio
+# 			
+#                     GNU GENERAL PUBLIC LICENSE
+#                        Version 2, June 1991
+
+#  Copyright (C) 1989, 1991 Free Software Foundation, Inc.,
+#  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+#  Everyone is permitted to copy and distribute verbatim copies
+#  of this license document, but changing it is not allowed.
+
+#                             Preamble
+
+#   The licenses for most software are designed to take away your
+# freedom to share and change it.  By contrast, the GNU General Public
+# License is intended to guarantee your freedom to share and change free
+# software--to make sure the software is free for all its users.  This
+# General Public License applies to most of the Free Software
+# Foundation's software and to any other program whose authors commit to
+# using it.  (Some other Free Software Foundation software is covered by
+# the GNU Lesser General Public License instead.)  You can apply it to
+# your programs, too.
+
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+MAGENTA="\033[35m"
+CYAN="\033[36m"
+WHITE="\033[37m"
+ENDCOLOR="\033[0m"
+
+OUTFD=$2
+
+ui_print() {
+	echo -n -e "ui_print $1\n" > /proc/self/fd/$OUTFD
+	echo -n -e "ui_print\n" > /proc/self/fd/$OUTFD
+}
+
+# Script
+ui_print "${GREEN}=======================================${ENDCOLOR}"
+ui_print "${GREEN}   _   ___   ___          _        _   ${ENDCOLOR}"
+ui_print "${GREEN}  /_\ | _ \ | _ \_ _ ___ (_)___ __| |_ ${ENDCOLOR}"
+ui_print "${GREEN} / _ \|   / |  _| '_/ _ \| / -_/ _|  _|${ENDCOLOR}"
+ui_print "${GREEN}/_/ \_|_|_\ |_| |_| \____/ \___\__|\__|${ENDCOLOR}"
+ui_print "${GREEN} ___ _           _ _   |__/            ${ENDCOLOR}"
+ui_print "${GREEN}/ __| |_ _  _ __| (_)___               ${ENDCOLOR}"
+ui_print "${GREEN}\__ |  _| || / _\`| / _ \              ${ENDCOLOR}"
+ui_print "${GREEN}|___/\__|\_,_\__,_|_\___/              ${ENDCOLOR}"
+ui_print "${GREEN}                                       ${ENDCOLOR}"
+ui_print "${GREEN}=======================================${ENDCOLOR}"
+ui_print " "
+ui_print "${GREEN}========================${ENDCOLOR}"
+ui_print "${CYAN}	Partition Table v14   ${ENDCOLOR}"
+ui_print "${CYAN}	 Google Pixel 2 XL    ${ENDCOLOR}"
+ui_print "${GREEN}========================${ENDCOLOR}"
+
+device=$(getprop ro.product.device)
+if [ "$device" != "taimen" || "$device" != "walleye" ]; then
+    exit 1
+fi
+
+if [ "$device" = "taimen" ]; then
+	ui_print "Partition table: Product + System_ext"
+	ui_print " "
+	ui_print "${YELLOW}Disclaimer!${ENDCOLOR}"
+	ui_print "${YELLOW}You will lose your data after repartition${ENDCOLOR}"
+	ui_print " "
+	ui_print "${GREEN}Start partitioning...${ENDCOLOR}"
+	ui_print "${MAGENTA}Step 1: Removing partitions${ENDCOLOR}"
+	ui_print " "
+      sgdisk --delete=17 /dev/block/sda
+	ui_print "${YELLOW}Removed userdata partition${ENDCOLOR}"
+      sgdisk --delete=16 /dev/block/sda
+    ui_print "${YELLOW}Removed system_ext_b partition${ENDCOLOR}"
+      sgdisk --delete=15 /dev/block/sda
+    ui_print "${YELLOW}Removed system_ext_a partition${ENDCOLOR}"
+      sgdisk --delete=14 /dev/block/sda
+    ui_print "${YELLOW}Removed product_b partition${ENDCOLOR}"
+      sgdisk --delete=13 /dev/block/sda
+    ui_print "${YELLOW}Removed product_a partition${ENDCOLOR}"
+	ui_print " "
+	ui_print "${MAGENTA}Step 2: Creating partitions${ENDCOLOR}"
+	ui_print " "
+	  sgdisk --new=13:1355776:2142207 --change-name=13:product_a --typecode=13:0FC63DAF-8483-4772-8E79-3D69D8477DE4 /dev/block/sda
+	ui_print "${GREEN}Created product_a (3GB) partition${ENDCOLOR}"
+	  sgdisk --new=14:2142208:2928639 --change-name=14:product_b --typecode=14:0FC63DAF-8483-4772-8E79-3D69D8477DE4 /dev/block/sda
+	ui_print "${GREEN}Created product_b (3GB) partition${ENDCOLOR}"
+	  sgdisk --new=15:2928640:3107839 --change-name=15:system_ext_a --typecode=15:0FC63DAF-8483-4772-8E79-3D69D8477DE4 /dev/block/sda
+	ui_print "${GREEN}Created system_ext_a (700MB) partition${ENDCOLOR}"
+	  sgdisk --new=16:3107840:3287039 --change-name=16:system_ext_b --typecode=16:0FC63DAF-8483-4772-8E79-3D69D8477DE4 /dev/block/sda
+	ui_print "${GREEN}Created system_ext_b (700MB) partition${ENDCOLOR}"
+	  sgdisk --new=17:3287040:0 --change-name=17:userdata --typecode=17:0FC63DAF-8483-4772-8E79-3D69D8477DE4 /dev/block/sda
+	ui_print "${GREEN}Created userdata partition${ENDCOLOR}"
+	ui_print " "
+	ui_print "${GREEN}Complete!${ENDCOLOR}"
+	ui_print " "
+	ui_print "${YELLOW}Important and mandatory!${ENDCOLOR}"
+	ui_print "${YELLOW}You must format data before rebooting into recovery or bootloader${ENDCOLOR}"
+fi
+
+if [ "$device" = "walleye" ]; then
+    ui_print "${YELLOW}Google Pixel 2 (walleye) detected!${ENDCOLOR}"
+	ui_print " "
+	ui_print "This repartition is made for Google Pixel 2 XL (taimen) only."
+	ui_print " "
+	ui_print "Please download and use the partition file according to your device"
+	ui_print " "
+	ui_print "${RED}Your partition table has not been modified.${ENDCOLOR}"
+fi
